@@ -1,16 +1,22 @@
-from django.shortcuts import render
-from rest_framework.decorators import api_view
-from .models import Expanse
-from .serializers import ExpanseSerializer
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework  import  status
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import User
+from .permissions import isWoner
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from .models import Expanse
+from .serializers import ExpanseSerializer
+from django.shortcuts import get_object_or_404
 # Create your views here.
 
 class ExpenseApi(APIView):
-
+    permission_classes = [IsAuthenticated]
     def get(self,request):
-        data=Expanse.objects.all()
+        
+        data = Expanse.objects.filter(user=request.user)
         serializer=ExpanseSerializer(data,many=True) 
         return Response(serializer.data )
    
@@ -18,17 +24,20 @@ class ExpenseApi(APIView):
     def post(self ,request):
         serializer=ExpanseSerializer(data=request.data )
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(user=request.user)
             return  Response( {"Message ": "Data saved successfully"})
-    
-
+        else:
+            return Response(serializer.errors )
 class ExpenseUpApi(APIView):
-
+    permission_classes=[IsAuthenticated ,isWoner]
     def get(self,request,id):
-        data=Expanse.objects.get(id=id)
-        serializer=ExpanseSerializer(data)
-        return Response(serializer.data)
-             
+                    
+            data=Expanse.objects.get(id=id,user=request.user)
+            if data is not None:
+                serializer=ExpanseSerializer(data)
+                return Response(serializer.data)
+            else:
+                return Response(serializer.errors) 
     def patch(self ,request, id ):
         item=Expanse.objects.get(id=id)
         serialiser=ExpanseSerializer(item,data=request.data, partial = True)
@@ -55,4 +64,22 @@ class ExpenseUpApi(APIView):
         else:
             return Response( status=status.HTTP_404_NOT_FOUND)
         
+
+class LoginView(APIView):
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            })
+
+        return Response({"error": "Invalid credentials"}, status=400)
+
+
 

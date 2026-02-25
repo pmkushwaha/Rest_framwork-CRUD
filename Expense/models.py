@@ -1,10 +1,12 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 # Create your models here.
 class Expanse(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE)
+    name=models.CharField(max_length=60, default="Unknown")
     title=models.CharField(max_length=60)
     amount=models.FloatField()
-    transaction_type=models.CharField(choices=(('Credit','Credit'),('Debit','Debit')))
+    transaction_type=models.CharField(max_length=60,choices=(('Credit','Credit'),('Debit','Debit')))
 
     def save(self,*args ,**kwargs):
         if self.transaction_type=='Debit':
