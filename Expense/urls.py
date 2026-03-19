@@ -1,12 +1,13 @@
 from django.urls import path
-from .views import ExpenseApi , ExpenseUpApi,LoginView ,LogoutView
+from .views import ExpenseApi , ExpenseUpApi,LoginView ,LogoutView ,TestView
  
  
 
 
 urlpatterns = [
-    path('expense',ExpenseApi.as_view(), name='ExpenseApi'),
+ path('expense',ExpenseApi.as_view(), name='ExpenseApi'),
  path('expense/<int:id>/',ExpenseUpApi.as_view(),name='ExpenseUpApi'),
  path('login',LoginView.as_view(),name='LoginView'),
  path('logout',LogoutView.as_view(),name="LogoutView"),
+ path('test/',TestView.as_view(),name="TestView"),
             ]
